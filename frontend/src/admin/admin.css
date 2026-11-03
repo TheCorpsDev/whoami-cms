@@ -32,6 +32,36 @@
 .f input[type='text'], .f input[type='email'], .f input[type='url'], .f input[type='number'], .f input[type='password'], .f input[type='month'], .f textarea, .f select {
   width: 100%; min-height: 46px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-input); background: var(--bg); color: var(--text); font-size: 15px;
 }
+.cv-options { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 40px; }
+.cv-options .choice { min-width: 260px; }
+/* Mutually exclusive choices shown as buttons; the selected one can be clicked again to clear it. */
+.choice { display: flex; gap: 4px; padding: 4px; min-height: 46px; border-radius: 10px; border: 1px solid var(--line-input); background: var(--bg); }
+.choice button { flex: 1 1 0; min-height: 36px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: var(--dim); font: inherit; font-size: 14px; cursor: pointer; transition: background .2s, color .2s; }
+.choice button:hover { color: var(--text); }
+.choice button[aria-pressed='true'] { background: var(--accent-bg); color: var(--text); }
+.choice button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Date field with its own calendar. */
+.dp-wrap { position: relative; }
+.dp-wrap input { padding-right: 48px; }
+.dp-toggle { position: absolute; top: 0; right: 0; width: 46px; height: 46px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--dim); cursor: pointer; }
+.dp-toggle:hover, .dp-toggle[aria-expanded='true'] { color: var(--accent); }
+.dp { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: 344px; max-width: calc(100vw - 32px); padding: 14px; border-radius: 14px; border: 1px solid var(--line-input); background: var(--panel); box-shadow: 0 18px 40px rgba(0, 0, 0, .45); display: flex; flex-direction: column; gap: 10px; }
+.dp .dp-head { display: flex; align-items: center; gap: 6px; height: 36px; }
+.dp .dp-head select { width: auto; height: 36px; min-height: 36px; padding: 0 8px; border-radius: 8px; font-size: 14px; cursor: pointer; flex: 1 1 auto; min-width: 0; }
+.dp .dp-head select:last-of-type { flex: 0 0 88px; }
+.dp .dp-head button { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.dp .dp-head button:hover { background: var(--panel-hover); color: var(--text); }
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dp-dow { padding: 4px 0; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--faint); text-transform: uppercase; }
+.dp-grid button { height: 38px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
+.dp-grid button:hover { background: var(--panel-hover); }
+.dp-grid button.out { color: var(--faint); }
+.dp-grid button.today { border-color: var(--line-input); }
+.dp-grid button[aria-pressed='true'] { background: var(--accent); color: var(--bg); font-weight: 600; }
+.dp-foot { display: flex; justify-content: space-between; padding-top: 6px; border-top: 1px solid var(--line); }
+.dp-foot button { min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--accent); font-size: 14px; cursor: pointer; }
+.dp-foot button:hover { background: var(--panel-hover); }
+.dp button:focus-visible, .dp-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .f textarea { padding: 12px 14px; resize: vertical; min-height: 96px; }
 .f .hint { color: var(--faint); font-size: 12px; }
 .f-error { color: #fda4af; font-size: 13px; }

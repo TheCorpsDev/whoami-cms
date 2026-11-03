@@ -107,6 +107,7 @@ Per cambiare la password: `php artisan admin:hash-password` (almeno 12 caratteri
 | **Formazione** | Titolo, istituto, date, voto. Un percorso passato si nasconde invece di eliminarlo. |
 | **Certificazioni** | Nome, ente, data, codice credenziale e link di verifica. |
 | **Competenze** | Gruppi con voci e un livello (base, intermedio, avanzato, esperto). |
+| **CV** | Genera il CV in PDF dai contenuti del sito, in italiano o in inglese. Vedi sotto. |
 | **Messaggi** | Messaggi del modulo contatti, da segnare come letti o eliminare. |
 | **Backup** | Scarica o ripristina il database. |
 
@@ -115,6 +116,12 @@ Le frecce accanto a ogni voce la spostano, l'interruttore di visibilità la nasc
 ### Italiano e inglese
 
 Ogni testo ha le schede IT e EN. Se un testo inglese è vuoto il sito mostra quello italiano. Con `DEEPL_API_KEY` impostata, i testi inglesi vuoti vengono tradotti al salvataggio e segnati «da controllare» finché non li approvi o li correggi; senza la chiave la funzione è spenta e silenziosa. Se DeepL non risponde il salvataggio funziona lo stesso e l'admin lo segnala.
+
+### Generatore di CV
+
+La sezione **CV** crea un PDF dai contenuti pubblicati (profilo, esperienza, formazione e, se vuoi, progetti e certificazioni) nella lingua scelta. Gira interamente nel browser con [pdfmake](https://pdfmake.github.io/docs/) caricato su richiesta: non c'è nessun componente server e il pannello scarica la libreria solo quando apri la sezione. Puoi vedere l'anteprima, scaricarlo o pubblicarlo come CV del sito (sostituisce il file caricato e attiva il pulsante di download; il file è in una sola lingua, quindi ripubblicalo quando vuoi cambiarla).
+
+Il riquadro **Dati per il CV**, nella stessa sezione, contiene ciò che serve a un CV ma non va mostrato su un sito pubblico: data di nascita, nazionalità, sesso, indirizzo, telefono, patente e la formula sul trattamento dei dati. Sono salvati in `profiles.cv_details`, restituiti solo da `/api/admin/*` e mai da `/api/portfolio`; un test lo verifica. La foto viene ritagliata a cerchio nel browser e inserita come JPEG (un PNG farebbe avviare a pdfmake un Web Worker da blob, che la CSP di produzione `script-src 'self'` blocca).
 
 ### Backup e ripristino
 

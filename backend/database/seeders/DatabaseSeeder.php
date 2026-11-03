@@ -67,6 +67,15 @@ class DatabaseSeeder extends Seeder
             'email' => 'alex.rossi@example.com',
             'github_url' => 'https://github.com/example',
             'linkedin_url' => 'https://www.linkedin.com/in/example',
+            // Fake data: the CV generator uses these, the public API never returns them.
+            'cv_details' => [
+                'birth_date' => '1990-01-15',
+                'nationality' => 'Italiana',
+                'phone' => '+39 000 000 0000',
+                'address' => 'Via Esempio 1, 20100 Milano, Italia',
+                'driving_license' => 'B',
+                'privacy_notice' => 'Autorizzo il trattamento dei dati personali contenuti nel CV ai sensi del Regolamento UE 2016/679 (GDPR).',
+            ],
         ]);
 
         $skills = fn (array $items) => array_map(fn (array $item) => ['name' => $item[0], 'level' => $item[1]], $items);

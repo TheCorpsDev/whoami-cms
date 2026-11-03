@@ -49,6 +49,14 @@ class ProfileController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'github_url' => ['nullable', 'url:https,http', 'max:255'],
             'linkedin_url' => ['nullable', 'url:https,http', 'max:255'],
+            'cv_details' => ['nullable', 'array'],
+            'cv_details.birth_date' => ['nullable', 'date_format:Y-m-d'],
+            'cv_details.nationality' => ['nullable', 'string', 'max:60'],
+            'cv_details.gender' => ['nullable', 'string', 'max:30'],
+            'cv_details.address' => ['nullable', 'string', 'max:200'],
+            'cv_details.phone' => ['nullable', 'string', 'max:40'],
+            'cv_details.driving_license' => ['nullable', 'string', 'max:60'],
+            'cv_details.privacy_notice' => ['nullable', 'string', 'max:700'],
             'approved' => ['sometimes', 'array'],
             'approved.*' => ['string', 'max:80'],
         ]);
@@ -73,6 +81,7 @@ class ProfileController extends Controller
                 'body' => Translations::clean($h['body']),
             ], $data['highlights']),
             'location' => ($location = Translations::clean($data['location'] ?? [])) === ['it' => '', 'en' => ''] ? null : $location,
+            'cv_details' => $this->cleanCvDetails($data['cv_details'] ?? null),
             'languages' => array_map(fn (array $l) => [
                 'name' => Translations::clean($l['name']),
                 'level' => $l['level'],
@@ -89,6 +98,28 @@ class ProfileController extends Controller
         $profile->update([...$clean, 'auto_translated' => $auto]);
 
         return response()->json([...(new ProfileResource($profile))->resolve($request), 'translation_warning' => $warning]);
+    }
+
+    /**
+     * Keeps only the known keys and drops empty values, so an empty form stores null.
+     *
+     * @param  array<string, mixed>|null  $details
+     * @return array<string, string>|null
+     */
+    private function cleanCvDetails(?array $details): ?array
+    {
+        $keys = ['birth_date', 'nationality', 'gender', 'address', 'phone', 'driving_license', 'privacy_notice'];
+        $clean = [];
+
+        foreach ($keys as $key) {
+            $value = trim((string) ($details[$key] ?? ''));
+
+            if ($value !== '') {
+                $clean[$key] = $value;
+            }
+        }
+
+        return $clean === [] ? null : $clean;
     }
 
     public function uploadPhoto(Request $request): JsonResponse

@@ -69,6 +69,39 @@ class AdminTest extends TestCase
         $this->putJson('/api/admin/profile', $profile)->assertOk()->assertJsonPath('location', null);
     }
 
+    public function test_cv_details_are_private_to_the_admin(): void
+    {
+        $this->login();
+        $profile = $this->getJson('/api/admin/profile')->assertOk()->json();
+
+        $profile['cv_details'] = [
+            'birth_date' => '1994-05-12',
+            'phone' => '+39 333 000 0000',
+            'address' => 'Via Roma 1, Milano',
+            'unknown_key' => 'dropped',
+            'nationality' => '  ',
+        ];
+        $this->putJson('/api/admin/profile', $profile)->assertOk()
+            ->assertJsonPath('cv_details.phone', '+39 333 000 0000')
+            ->assertJsonMissingPath('cv_details.unknown_key')
+            ->assertJsonMissingPath('cv_details.nationality');
+
+        $this->getJson('/api/admin/profile')->assertJsonPath('cv_details.birth_date', '1994-05-12');
+
+        // Never in the public API, not even as an empty key.
+        $public = $this->getJson('/api/portfolio')->assertOk();
+        $public->assertJsonMissingPath('profile.cv_details');
+        $this->assertStringNotContainsString('333 000 0000', $public->getContent());
+        $this->assertStringNotContainsString('Via Roma', $public->getContent());
+
+        $profile['cv_details'] = ['birth_date' => '12/05/1994'];
+        $this->putJson('/api/admin/profile', $profile)->assertUnprocessable()->assertJsonValidationErrors('cv_details.birth_date');
+
+        $profile['cv_details'] = [];
+        $this->putJson('/api/admin/profile', $profile)->assertOk();
+        $this->getJson('/api/admin/profile')->assertJsonPath('cv_details', []);
+    }
+
     public function test_login_is_refused_when_no_hash_is_configured(): void
     {
         config(['portfolio.admin_password_hash' => null]);
