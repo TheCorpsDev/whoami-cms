@@ -1,6 +1,8 @@
-# whoami-cms — technical guide
+# whoami-cms — technical README
 
-<p><strong>English</strong> · <a href="TECHNICAL.it.md">Italiano</a> · <a href="../README.md">Back to README</a></p>
+<p><strong>English</strong> · <a href="README.tecnico.md">Italiano</a> · <a href="README.md">Back to the presentation</a></p>
+
+How to run, check, configure and deploy whoami-cms. For what the app is and does, read the [presentation](README.md).
 
 ## Architecture
 
@@ -59,6 +61,13 @@ docker compose exec frontend npm run build
 ```
 
 The seeder, the tests and the screenshots all use the made-up profile in `backend/database/seeders/DatabaseSeeder.php`.
+
+## Make it yours
+
+1. **Content**: edit everything from `/admin`.
+2. **Name, title and meta tags**: copy `frontend/.env.example` to `frontend/.env` and set the `VITE_SITE_*` variables (see below).
+3. **Icons**: replace the files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
+4. **Fixed texts** (menu, headings): `frontend/src/lib/i18n.tsx`.
 
 ## Configuration
 
@@ -169,7 +178,7 @@ The `api` container writes to stderr. With `LOG_STDERR_FORMATTER=Monolog\Formatt
 - Contact form: honeypot field and a per-IP limit. A mail outage never loses a message: it is saved before the e-mail is sent.
 - Nginx sends CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options` and `Referrer-Policy`.
 - Uploads are type-checked and served by Nginx from a read-only volume.
-- Report problems privately, see [SECURITY.md](../SECURITY.md).
+- Report problems privately, see [SECURITY.md](SECURITY.md).
 
 ## Regenerate the screenshots
 
@@ -188,5 +197,5 @@ frontend/   React app (src/site, src/admin, src/lib) and static files (public/)
 docker/     Dockerfiles and Nginx configuration (dev and production)
 deploy/     example production Compose file and .env
 scripts/    Docker Hub tag cleanup, screenshot generator
-docs/       this guide and the screenshots
+docs/       screenshots used by the README files
 ```

@@ -1,12 +1,71 @@
-# whoami-cms
+<h1 align="center">whoami-cms</h1>
 
-<p align="center"><a href="README.md">English</a> · <strong>Italiano</strong></p>
+<p align="center"><strong>Il tuo portfolio. I tuoi contenuti. Un solo admin nascosto.</strong></p>
 
-**Un portfolio personale che possiedi e modifichi da un pannello admin nascosto.** Sito pubblico in italiano e inglese, admin con una sola password su `/admin`, database in un unico file SQLite e immagini Docker pronte da pubblicare. Niente page builder, niente plugin: una piccola API Laravel e un sito React che compili dal browser.
+<p align="center"><a href="README.md">English</a> · <strong>Italiano</strong> · <a href="README.tecnico.md">README tecnico</a></p>
 
 <p align="center">
-  <img src="docs/screenshots/site-desktop-home.webp" width="640" alt="Home del sito demo su desktop">
+  <img src="https://img.shields.io/badge/licenza-MIT-a78bfa?style=flat-square&labelColor=0e1018" alt="Licenza: MIT">
+  <img src="https://img.shields.io/badge/sito-IT%20%C2%B7%20EN-a78bfa?style=flat-square&labelColor=0e1018" alt="Italiano e inglese">
+  <img src="https://img.shields.io/badge/PWA-installabile-a78bfa?style=flat-square&labelColor=0e1018" alt="PWA installabile">
+  <img src="https://img.shields.io/badge/database-un%20file%20SQLite-a78bfa?style=flat-square&labelColor=0e1018" alt="Un solo file SQLite">
 </p>
+
+whoami-cms è un portfolio personale per sviluppatori che possiedi e modifichi da un **pannello admin nascosto**. Il sito pubblico è una pagina unica già disegnata, in italiano e in inglese; i contenuti (profilo, esperienza, progetti, formazione, certificazioni, competenze) stanno in un unico file SQLite che compili dal browser. Niente page builder, niente plugin, niente server di database.
+
+<p align="center">
+  <img src="docs/screenshots/site-desktop-home.webp" width="760" alt="Home del sito demo su desktop">
+</p>
+
+> I contenuti demo sono quelli di un profilo inventato, *Alex Rossi*. Il sito pubblico esiste in inglese e in italiano; per ora l'**interfaccia dell'admin è solo in italiano**.
+
+## Perché whoami-cms
+
+- **È tuo.** Il tuo server, i tuoi dati in un file che puoi scaricare, nessun servizio ospitato in mezzo.
+- **Un design finito, non una tela bianca.** Il layout è fisso e pensato prima per il telefono: scrivi solo i contenuti, e il risultato è sempre curato.
+- **Nascosto per scelta.** L'admin si raggiunge solo scrivendo `/admin`: nessun link, nessuna indicizzazione, una sola password che non tocca mai il database.
+- **Bilingue fin dall'inizio.** Ogni testo ha una versione italiana e una inglese, e la lingua del visitatore viene ricordata.
+
+## Funzionalità
+
+### Il sito pubblico
+
+- **Hero** con nome, ruolo, frasi a rotazione, badge «aperto a nuove opportunità», foto (o iniziali), link a GitHub e LinkedIn e un pulsante per scaricare il CV.
+- **Chi sono** con una frase d'apertura, la tua storia e numeri calcolati dai tuoi dati: anni di esperienza, progetti personali, certificazioni, tecnologie nello stack.
+- **Stack** raggruppato per area, con un livello per ogni competenza (base, intermedio, avanzato, esperto) mostrato a tacche; **lingue** con livelli CEFR.
+- **Esperienza** con ruolo, azienda, date, descrizione, tecnologie e i progetti seguiti, ognuno una card cliccabile.
+- **Progetti personali** con una card in evidenza e una griglia filtrabile (app, librerie, infrastruttura), con link a repository, demo o pagina del pacchetto.
+- **Formazione** e **certificazioni**, con codici credenziale e link di verifica. I percorsi passati si possono nascondere invece di eliminarli.
+- **Modulo contatti** con campo trappola (honeypot) e limite di richieste. I messaggi restano nell'admin e arrivano anche via email.
+- **PWA installabile**: la aggiungi alla schermata Home e si apre anche offline con gli ultimi contenuti visti.
+
+### L'admin nascosto
+
+- **Una sola password**, impostata come hash nell'ambiente, con blocco dopo ripetuti errori.
+- **Tutto modificabile** a sezioni: profilo, esperienza, progetti, formazione, certificazioni, competenze e lingue. Si riordina con le frecce, si nasconde una voce, si mette un progetto in evidenza, si accende il badge di disponibilità.
+- **Caricamento di foto e CV**; il pulsante per scaricare il CV mostra la dimensione del file.
+- **Schede italiano e inglese** su ogni testo. Con una chiave DeepL i testi inglesi vuoti vengono tradotti al salvataggio e segnati *da controllare* finché non li approvi.
+- **Posta in arrivo** del modulo contatti: segna come letto, elimina, rispondi.
+- **Backup e ripristino** dell'intero database con due clic.
+
+### Fatto per essere pubblicato
+
+- Due immagini Docker di produzione e un workflow GitHub Actions che testa, costruisce e pubblica.
+- Controlli di salute, log in JSON per gli strumenti di raccolta e intestazioni di sicurezza rigorose già pronti.
+
+## Screenshot
+
+### Il sito
+
+<p align="center">
+  <img src="docs/screenshots/site-desktop-stack.webp" width="400" alt="Stack con i livelli di competenza">
+  <img src="docs/screenshots/site-desktop-experience.webp" width="400" alt="Esperienza con i progetti seguiti">
+</p>
+<p align="center">
+  <img src="docs/screenshots/site-desktop-projects.webp" width="600" alt="Progetto in evidenza e griglia dei progetti">
+</p>
+
+### Su telefono
 
 <p align="center">
   <img src="docs/screenshots/site-mobile-home.webp" width="200" alt="Home su telefono">
@@ -14,71 +73,27 @@
   <img src="docs/screenshots/site-mobile-projects.webp" width="200" alt="Progetti su telefono">
 </p>
 
-> I contenuti demo sono quelli di un profilo inventato, *Alex Rossi*. Il sito pubblico esiste in inglese e in italiano; per ora l'**interfaccia dell'admin è solo in italiano**.
-
-## Cosa include
-
-- **Sito a pagina unica** con hero, chi sono, stack con livelli di competenza, esperienza, progetti personali, formazione, certificazioni e modulo contatti.
-- **Italiano e inglese** per ogni testo, con cambio lingua dalla pagina e lingua ricordata.
-- **Admin nascosto**, raggiungibile solo scrivendo `/admin`: nessun link, `noindex`, una password che imposti nell'ambiente e mai nel database.
-- **Tutto modificabile**: profilo, foto e CV, esperienza, progetti, formazione, certificazioni, competenze e lingue (livelli CEFR). Si riordina, si nasconde, si mette un progetto in evidenza e si accende o spegne il badge «aperto a nuove opportunità».
-- **Modulo contatti** con campo trappola (honeypot) e limite di richieste. I messaggi restano nell'admin e arrivano anche via email.
-- **Backup e ripristino** dell'intero database dall'admin.
-- **PWA installabile**, che si apre anche offline con gli ultimi contenuti visti.
-- **Traduzione automatica facoltativa** italiano → inglese con DeepL, con il segno «da controllare» finché non approvi ogni testo.
-- **Immagini di produzione** per Docker e un workflow GitHub Actions che testa, costruisce e pubblica.
-
-## L'admin
+### L'admin
 
 <p align="center">
-  <img src="docs/screenshots/admin-projects.webp" width="420" alt="Sezione Progetti dell'admin">
-  <img src="docs/screenshots/admin-stack.webp" width="420" alt="Sezione Competenze dell'admin">
+  <img src="docs/screenshots/admin-login.webp" width="400" alt="Accesso all'admin">
+  <img src="docs/screenshots/admin-profile.webp" width="400" alt="Sezione Profilo">
 </p>
-
-## Altre parti del sito
-
 <p align="center">
-  <img src="docs/screenshots/site-desktop-stack.webp" width="420" alt="Sezione stack con i livelli">
-  <img src="docs/screenshots/site-desktop-projects.webp" width="420" alt="Sezione progetti">
+  <img src="docs/screenshots/admin-projects.webp" width="400" alt="Sezione Progetti">
+  <img src="docs/screenshots/admin-stack.webp" width="400" alt="Sezione Competenze">
+</p>
+<p align="center">
+  <img src="docs/screenshots/admin-backup.webp" width="400" alt="Backup e ripristino">
 </p>
 
-## Avvio rapido
-
-Serve solo Docker.
-
-```bash
-cp backend/.env.example backend/.env
-docker compose up -d
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate --seed
-docker compose exec app php artisan storage:link
-docker compose exec app php artisan admin:hash-password
-```
-
-Incolla in `backend/.env` la riga `ADMIN_PASSWORD_HASH='…'` che viene stampata, poi apri:
-
-- sito: <http://localhost:5174>
-- admin: <http://localhost:5174/admin>
-- email di prova (Mailpit): <http://localhost:8026>
-
-Il seeder carica il profilo demo e si rifiuta di girare due volte, quindi non sovrascrive mai quello che modifichi. Per partire dai tuoi contenuti apri l'admin e sostituisci ogni testo.
-
-## Rendilo tuo
-
-1. **Contenuti**: modifica tutto da `/admin`.
-2. **Nome, titolo e meta tag**: copia `frontend/.env.example` in `frontend/.env` e imposta `VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME` e `VITE_SITE_INITIALS`.
-3. **Icone**: sostituisci i file in `frontend/public/icons/` e `frontend/public/favicon.svg`.
-4. **Testi fissi** (menu, titoli): `frontend/src/lib/i18n.tsx`.
-
-## Documentazione
-
-- [Guida tecnica](docs/TECHNICAL.it.md): architettura, configurazione, guida all'admin, backup, deploy, test ([English](docs/TECHNICAL.md)).
-- [Politica di sicurezza](SECURITY.md).
-
-## Stack
+## Stack tecnico
 
 Laravel 13 (PHP 8.4-FPM) · SQLite · React 19 + TypeScript + Vite · Nginx · Docker · GitHub Actions.
+
+## Avvio, configurazione e deploy
+
+Installazione locale, configurazione, guida all'admin, backup, deploy e test sono nel **[README tecnico](README.tecnico.md)**. Per segnalare un problema di sicurezza vedi [SECURITY.md](SECURITY.md).
 
 ## Licenza
 

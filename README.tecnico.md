@@ -1,6 +1,8 @@
-# whoami-cms — guida tecnica
+# whoami-cms — README tecnico
 
-<p><a href="TECHNICAL.md">English</a> · <strong>Italiano</strong> · <a href="../README.it.md">Torna al README</a></p>
+<p><a href="README.technical.md">English</a> · <strong>Italiano</strong> · <a href="README.it.md">Torna alla presentazione</a></p>
+
+Guida per eseguire, verificare, configurare e distribuire whoami-cms. Per cosa è e cosa fa l'app consulta la [presentazione](README.it.md).
 
 ## Architettura
 
@@ -59,6 +61,13 @@ docker compose exec frontend npm run build
 ```
 
 Seeder, test e screenshot usano tutti il profilo inventato in `backend/database/seeders/DatabaseSeeder.php`.
+
+## Rendilo tuo
+
+1. **Contenuti**: modifica tutto da `/admin`.
+2. **Nome, titolo e meta tag**: copia `frontend/.env.example` in `frontend/.env` e imposta le variabili `VITE_SITE_*` (vedi sotto).
+3. **Icone**: sostituisci i file in `frontend/public/icons/` e `frontend/public/favicon.svg`.
+4. **Testi fissi** (menu, titoli): `frontend/src/lib/i18n.tsx`.
 
 ## Configurazione
 
@@ -169,7 +178,7 @@ Il container `api` scrive su stderr. Con `LOG_STDERR_FORMATTER=Monolog\Formatter
 - Modulo contatti: campo trappola e limite per IP. Un guasto della posta non fa perdere nessun messaggio: viene salvato prima di inviare l'email.
 - Nginx invia CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options` e `Referrer-Policy`.
 - Gli upload sono controllati per tipo e serviti da Nginx da un volume in sola lettura.
-- I problemi si segnalano in privato, vedi [SECURITY.md](../SECURITY.md).
+- I problemi si segnalano in privato, vedi [SECURITY.md](SECURITY.md).
 
 ## Rigenerare gli screenshot
 
@@ -188,5 +197,5 @@ frontend/   app React (src/site, src/admin, src/lib) e file statici (public/)
 docker/     Dockerfile e configurazione Nginx (sviluppo e produzione)
 deploy/     esempio di Compose e .env di produzione
 scripts/    pulizia dei tag Docker Hub, generatore di screenshot
-docs/       questa guida e gli screenshot
+docs/       screenshot usati dai README
 ```

@@ -1,6 +1,6 @@
 // Regenerates the images in docs/screenshots from a running instance.
 //
-//   1. start the stack with the demo data (see docs/TECHNICAL.md) and set a
+//   1. start the stack with the demo data (see README.technical.md) and set a
 //      known admin password: the hash goes in backend/.env;
 //   2. npm i --no-save playwright sharp     (any folder, e.g. /tmp/shots)
 //   3. BASE_URL=http://localhost:5174 ADMIN_PASSWORD='...' node scripts/screenshots.mjs
