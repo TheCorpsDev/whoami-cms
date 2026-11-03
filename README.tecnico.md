@@ -66,7 +66,7 @@ Seeder, test e screenshot usano tutti il profilo inventato in `backend/database/
 
 1. **Contenuti**: modifica tutto da `/admin`.
 2. **Nome, titolo e meta tag**: copia `frontend/.env.example` in `frontend/.env` e imposta le variabili `VITE_SITE_*` (vedi sotto).
-3. **Icone**: sostituisci i file in `frontend/public/icons/` e `frontend/public/favicon.svg`.
+3. **Icone**: imposta `VITE_SITE_INITIALS` e la build disegna favicon e icone della schermata home con quelle lettere. Per una grafica tua lascia la variabile vuota e sostituisci i file in `frontend/public/icons/` e `frontend/public/favicon.svg`.
 4. **Testi fissi** (menu, titoli): `frontend/src/lib/i18n.tsx`.
 
 ## Configurazione
@@ -89,9 +89,9 @@ Seeder, test e screenshot usano tutti il profilo inventato in `backend/database/
 
 ### Frontend (in fase di build)
 
-`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: titolo, descrizione, anteprima social, nome dell'app installata (manifest generato) e lettere del logo nell'admin. Si mettono in `frontend/.env` o nell'ambiente prima di `npm run build`. I valori predefiniti sono quelli del profilo demo.
+`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: titolo, descrizione, anteprima social, nome dell'app installata (manifest generato), lettere del logo nell'admin e di favicon e icone della schermata home. Si mettono in `frontend/.env` o nell'ambiente prima di `npm run build`. I valori predefiniti sono quelli del profilo demo.
 
-Le icone sono file statici in `frontend/public/icons/` e `frontend/public/favicon.svg`.
+Se `VITE_SITE_INITIALS` è impostata, `npm run build` disegna favicon e icone PWA da quelle lettere (`frontend/build/siteIcons.ts`, con resvg e un font monospazio incluso, quindi non servono font di sistema) e sostituiscono i file in `dist`. Senza, si usano così come sono i file statici in `frontend/public/icons/` e `frontend/public/favicon.svg`.
 
 ## L'admin
 

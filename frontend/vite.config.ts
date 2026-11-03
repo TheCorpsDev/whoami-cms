@@ -1,5 +1,7 @@
+import { writeSiteIcons } from './build/siteIcons.ts'
 import react from '@vitejs/plugin-react'
-import { defineConfig, loadEnv, type Plugin } from 'vite'
+import path from 'node:path'
+import { defineConfig, loadEnv, type Plugin, type ResolvedConfig } from 'vite'
 
 // In development the Laravel API sits behind the Nginx container.
 const apiTarget = process.env.VITE_API_PROXY ?? 'http://localhost:8080'
@@ -16,6 +18,8 @@ function siteSettings(env: Record<string, string>) {
     description: env.VITE_SITE_DESCRIPTION || 'Personal portfolio: projects, experience and contacts.',
     shortName: env.VITE_SITE_SHORT_NAME || 'Alex R.',
     initials: env.VITE_SITE_INITIALS || 'AR',
+    // Icons are drawn from the initials only when they are set; otherwise the demo icons in public/ stay.
+    customIcons: Boolean(env.VITE_SITE_INITIALS),
     themeColor: '#0E1018',
   }
 }
@@ -41,6 +45,7 @@ const manifest = (site: Site) => JSON.stringify({
 
 /** Fills the %SITE_*% tokens of index.html and serves/emits the web manifest. */
 function sitePlugin(site: Site): Plugin {
+  let config: ResolvedConfig
   const tokens: Record<string, string> = {
     SITE_NAME: site.name,
     SITE_TITLE: `${site.name} — ${site.tagline}`,
@@ -62,8 +67,20 @@ function sitePlugin(site: Site): Plugin {
         res.end(manifest(site))
       })
     },
+    configResolved(resolved) {
+      config = resolved
+    },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: manifest(site) })
+    },
+    // After public/ has been copied, so the generated icons replace the demo ones.
+    closeBundle: {
+      order: 'post',
+      async handler() {
+        if (config.command === 'build' && site.customIcons) {
+          await writeSiteIcons(path.resolve(config.root, config.build.outDir), site.initials)
+        }
+      },
     },
   }
 }

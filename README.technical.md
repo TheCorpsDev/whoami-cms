@@ -66,7 +66,7 @@ The seeder, the tests and the screenshots all use the made-up profile in `backen
 
 1. **Content**: edit everything from `/admin`.
 2. **Name, title and meta tags**: copy `frontend/.env.example` to `frontend/.env` and set the `VITE_SITE_*` variables (see below).
-3. **Icons**: replace the files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
+3. **Icons**: set `VITE_SITE_INITIALS` and the build draws the favicon and the home-screen icons from those letters. For your own artwork leave the variable empty and replace the files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
 4. **Fixed texts** (menu, headings): `frontend/src/lib/i18n.tsx`.
 
 ## Configuration
@@ -89,9 +89,9 @@ The seeder, the tests and the screenshots all use the made-up profile in `backen
 
 ### Frontend (build time)
 
-`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: title, description, social card, installed-app name (generated manifest) and the logo letters of the admin. Put them in `frontend/.env` or in the environment before `npm run build`. Defaults belong to the demo profile.
+`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: title, description, social card, installed-app name (generated manifest), the logo letters of the admin and the letters of the favicon and home-screen icons. Put them in `frontend/.env` or in the environment before `npm run build`. Defaults belong to the demo profile.
 
-Icons are static files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
+When `VITE_SITE_INITIALS` is set, `npm run build` draws the favicon and the PWA icons from it (`frontend/build/siteIcons.ts`, rendered with resvg and a bundled monospace font, so no system fonts are needed) and they replace the files in `dist`. Without it, the static files in `frontend/public/icons/` and `frontend/public/favicon.svg` are used as they are.
 
 ## The admin
 
