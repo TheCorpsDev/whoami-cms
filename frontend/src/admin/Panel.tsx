@@ -5,6 +5,7 @@ import { api, ApiError } from '../lib/api'
 import type { Message } from '../types'
 import { BackupSection } from './BackupSection'
 import { CallContext, type Call } from './context'
+import { CvSection } from './CvSection'
 import { ListSection } from './ListSection'
 import { LISTS } from './lists'
 import { MessagesSection } from './MessagesSection'
@@ -18,6 +19,7 @@ const SECTIONS = [
   { id: 'formazione', label: 'Formazione' },
   { id: 'certificazioni', label: 'Certificazioni' },
   { id: 'competenze', label: 'Competenze' },
+  { id: 'cv', label: 'CV' },
   { id: 'messaggi', label: 'Messaggi' },
   { id: 'backup', label: 'Backup' },
 ] as const
@@ -95,6 +97,7 @@ export default function Panel({ onLogout, onUnauthorized }: { onLogout: () => vo
           {section === 'formazione' && <ListSection config={LISTS.education} />}
           {section === 'certificazioni' && <ListSection config={LISTS.certifications} />}
           {section === 'competenze' && <ListSection config={LISTS.skillGroups} />}
+          {section === 'cv' && <CvSection />}
           {section === 'messaggi' && <MessagesSection onChange={refreshUnread} />}
           {section === 'backup' && <BackupSection />}
         </main>

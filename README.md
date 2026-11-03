@@ -44,6 +44,7 @@ whoami-cms is a personal portfolio for developers that you own and edit from a *
 - **One password**, set as a hash in the environment, with a lockout after repeated failures.
 - **Everything editable** in sections: profile, experience, projects, education, certifications, skills and languages. Reorder with the arrows, hide an item, mark a project as featured, switch the availability badge.
 - **Photo and CV upload**; the CV download button shows the file size.
+- **CV generator**: from the same content, in Italian or English, it builds a clean two-column PDF right in your browser (nothing leaves it) and can publish it as the site's CV. Private details such as date of birth or address are used only for the PDF and never reach the public site.
 - **Italian and English tabs** on every text. With a DeepL key, empty English texts are translated on save and flagged *to review* until you approve them.
 - **Messages inbox** for the contact form: mark as read, delete, reply.
 - **Backup and restore** of the whole database with two clicks.

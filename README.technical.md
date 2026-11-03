@@ -66,7 +66,7 @@ The seeder, the tests and the screenshots all use the made-up profile in `backen
 
 1. **Content**: edit everything from `/admin`.
 2. **Name, title and meta tags**: copy `frontend/.env.example` to `frontend/.env` and set the `VITE_SITE_*` variables (see below).
-3. **Icons**: replace the files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
+3. **Icons**: set `VITE_SITE_INITIALS` and the build draws the favicon and the home-screen icons from those letters. For your own artwork leave the variable empty and replace the files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
 4. **Fixed texts** (menu, headings): `frontend/src/lib/i18n.tsx`.
 
 ## Configuration
@@ -89,9 +89,9 @@ The seeder, the tests and the screenshots all use the made-up profile in `backen
 
 ### Frontend (build time)
 
-`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: title, description, social card, installed-app name (generated manifest) and the logo letters of the admin. Put them in `frontend/.env` or in the environment before `npm run build`. Defaults belong to the demo profile.
+`VITE_SITE_NAME`, `VITE_SITE_TAGLINE`, `VITE_SITE_DESCRIPTION`, `VITE_SITE_SHORT_NAME`, `VITE_SITE_INITIALS`: title, description, social card, installed-app name (generated manifest), the logo letters of the admin and the letters of the favicon and home-screen icons. Put them in `frontend/.env` or in the environment before `npm run build`. Defaults belong to the demo profile.
 
-Icons are static files in `frontend/public/icons/` and `frontend/public/favicon.svg`.
+When `VITE_SITE_INITIALS` is set, `npm run build` draws the favicon and the PWA icons from it (`frontend/build/siteIcons.ts`, rendered with resvg and a bundled monospace font, so no system fonts are needed) and they replace the files in `dist`. Without it, the static files in `frontend/public/icons/` and `frontend/public/favicon.svg` are used as they are.
 
 ## The admin
 
@@ -107,6 +107,7 @@ To change the password run `php artisan admin:hash-password` (at least 12 charac
 | **Education** | Title, institution, dates, grade. Hide a past entry instead of deleting it. |
 | **Certifications** | Name, issuer, date, credential id and verification link. |
 | **Skills** | Groups with items and a level (basic, intermediate, advanced, expert). |
+| **CV** | Generates the CV as a PDF from the site content, in Italian or English. See below. |
 | **Messages** | Contact form messages, with read and delete. |
 | **Backup** | Download or restore the database. |
 
@@ -115,6 +116,12 @@ Use the arrows next to each item to reorder it and the visibility switch to hide
 ### Italian and English
 
 Every text has an IT and an EN tab. If an English text is empty the site shows the Italian one. With `DEEPL_API_KEY` set, empty English texts are translated on save and flagged "to review" until you approve or correct them; without the key the feature is off and silent. If DeepL is down the save still works and the admin says so.
+
+### CV generator
+
+The **CV** section builds a PDF from the published content (profile, experience, education, and optionally projects and certifications) in the language you pick. It runs entirely in the browser with [pdfmake](https://pdfmake.github.io/docs/) loaded on demand, so there is no server component and the admin bundle only downloads it when you open the section. You can preview it, download it, or publish it as the CV of the site (it replaces the uploaded file and enables the download button; the file is single-language, so republish it when you want the other one).
+
+The **CV details** panel in the same section holds what a CV needs but a public site should not show: date of birth, nationality, gender, address, phone, driving licence and a data-processing notice. They are stored in `profiles.cv_details`, returned only by `/api/admin/*` and never by `/api/portfolio`; a test guards that. The photo is cropped to a circle in the browser and embedded as JPEG (a PNG would make pdfmake start a blob Web Worker, which the production CSP `script-src 'self'` blocks).
 
 ### Backup and restore
 

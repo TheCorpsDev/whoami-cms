@@ -28,6 +28,18 @@ export type Profile = Review & {
   cv_url: string | null
   /** Bytes, only to show the file size in the admin. */
   cv_size: number | null
+  /** Private CV data: returned by the admin API only, never by the public one. */
+  cv_details?: CvDetails
+}
+
+export type CvDetails = {
+  birth_date?: string
+  nationality?: string
+  gender?: string
+  address?: string
+  phone?: string
+  driving_license?: string
+  privacy_notice?: string
 }
 
 /** Admin-only bookkeeping of machine translations. */

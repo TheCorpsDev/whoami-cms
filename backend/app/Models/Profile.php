@@ -16,6 +16,7 @@ class Profile extends Model
         'about' => 'array',
         'about_headline' => 'array',
         'location' => 'array',
+        'cv_details' => 'array',
         'highlights' => 'array',
         'languages' => 'array',
         'available' => 'boolean',

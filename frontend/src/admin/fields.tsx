@@ -1,4 +1,4 @@
-import { useContext, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useContext, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Icon } from '../components/Icon'
 import { SKILL_LEVELS, skillLevel } from '../lib/skills'
 import type { Locale, SkillItem, Translated } from '../types'
@@ -27,6 +27,165 @@ export function TextField({
       {hint && <span className="hint">{hint}</span>}
       <FieldError path={path} />
     </label>
+  )
+}
+
+const MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const WEEKDAYS = ['lu', 'ma', 'me', 'gi', 've', 'sa', 'do']
+
+const pad = (n: number) => String(n).padStart(2, '0')
+const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
+/** "2026-11-04" → Date, or null when it is not a real calendar date. */
+function fromIso(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  return toIso(date) === value ? date : null
+}
+
+const toDisplay = (value: string) => {
+  const date = fromIso(value)
+  return date ? `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}` : ''
+}
+
+/** "04/11/2026" → "2026-11-04", or '' when incomplete or not a real date. */
+function displayToIso(text: string): string {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text)
+  if (!match) return ''
+  const iso = `${match[3]}-${match[2]}-${match[1]}`
+  return fromIso(iso) ? iso : ''
+}
+
+/** Digits only, with the slashes added as you type: 04111994 → 04/11/1994. */
+const maskDate = (text: string) => {
+  const digits = text.replace(/\D/g, '').slice(0, 8)
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('/')
+}
+
+/** Date input with a calendar of our own: the browser's picker can't follow the admin theme. Value is YYYY-MM-DD. */
+export function DateField({
+  label, path, wide, hint, value, onChange, minYear, maxYear,
+}: Common & { value: string; onChange: (v: string) => void; minYear?: number; maxYear?: number }) {
+  const [today] = useState(() => new Date())
+  const lastYear = maxYear ?? today.getFullYear()
+  const firstYear = minYear ?? lastYear - 100
+  const selected = fromIso(value)
+  // While typing `draft` wins; otherwise the field shows the value, so outside changes (the form loading) need no syncing.
+  const [draft, setDraft] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+  const [browsed, setBrowsed] = useState<{ year: number; month: number } | null>(null)
+  const view = browsed ?? { year: (selected ?? today).getFullYear(), month: (selected ?? today).getMonth() }
+  const text = draft ?? toDisplay(value)
+  const box = useRef<HTMLDivElement>(null)
+  const labelId = useId()
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const esc = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [open])
+
+  const type = (raw: string) => {
+    const masked = maskDate(raw)
+    setDraft(masked)
+    if (masked === '') onChange('')
+    else if (masked.length === 10) onChange(displayToIso(masked))
+  }
+
+  const pick = (date: Date) => {
+    onChange(toIso(date))
+    setBrowsed(null)
+    setDraft(null)
+    setOpen(false)
+  }
+
+  const shift = (delta: number) => {
+    const next = new Date(view.year, view.month + delta, 1)
+    if (next.getFullYear() < firstYear || next.getFullYear() > lastYear) return
+    setBrowsed({ year: next.getFullYear(), month: next.getMonth() })
+  }
+
+  const offset = (new Date(view.year, view.month, 1).getDay() + 6) % 7
+  const cells = Array.from({ length: 42 }, (_, i) => new Date(view.year, view.month, i - offset + 1))
+  const years = Array.from({ length: lastYear - firstYear + 1 }, (_, i) => lastYear - i)
+
+  return (
+    <div className={`f${wide ? ' wide' : ''}`}>
+      <span className="f-head" id={labelId}>{label}</span>
+      <div className="dp-wrap" ref={box}>
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          aria-labelledby={labelId}
+          placeholder="gg/mm/aaaa"
+          value={text}
+          onChange={(e) => type(e.target.value)}
+          onBlur={() => setDraft(null)}
+        />
+        <button type="button" className="dp-toggle" aria-label="Apri il calendario" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <Icon name="calendar" size={18} />
+        </button>
+        {open && (
+          <div className="dp" role="dialog" aria-label={`Scegli: ${label}`}>
+            <div className="dp-head">
+              <button type="button" aria-label="Mese precedente" onClick={() => shift(-1)}><Icon name="left" size={16} /></button>
+              <select aria-label="Mese" value={view.month} onChange={(e) => setBrowsed({ ...view, month: Number(e.target.value) })}>
+                {MONTHS.map((name, i) => <option key={name} value={i}>{name}</option>)}
+              </select>
+              <select aria-label="Anno" value={view.year} onChange={(e) => setBrowsed({ ...view, year: Number(e.target.value) })}>
+                {years.map((year) => <option key={year} value={year}>{year}</option>)}
+              </select>
+              <button type="button" aria-label="Mese successivo" onClick={() => shift(1)}><Icon name="right" size={16} /></button>
+            </div>
+            <div className="dp-grid">
+              {WEEKDAYS.map((day) => <span key={day} className="dp-dow">{day}</span>)}
+              {cells.map((date) => {
+                const iso = toIso(date)
+                const classes = [date.getMonth() !== view.month && 'out', iso === toIso(today) && 'today'].filter(Boolean).join(' ')
+                return (
+                  <button key={iso} type="button" className={classes} aria-pressed={iso === value} onClick={() => pick(date)}>{date.getDate()}</button>
+                )
+              })}
+            </div>
+            <div className="dp-foot">
+              <button type="button" onClick={() => { onChange(''); setDraft(null); setOpen(false) }}>Cancella</button>
+              <button type="button" onClick={() => pick(today)}>Oggi</button>
+            </div>
+          </div>
+        )}
+      </div>
+      {hint && <span className="hint">{hint}</span>}
+      <FieldError path={path} />
+    </div>
+  )
+}
+
+/** Mutually exclusive choices shown as buttons. Unless `clearable` is off, clicking the selected one clears it so the field can stay empty. */
+export function ChoiceField({
+  label, path, wide, hint, value, onChange, options, clearable = true,
+}: Common & { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; clearable?: boolean }) {
+  const labelId = useId()
+  return (
+    <div className={`f${wide ? ' wide' : ''}`}>
+      <span className="f-head" id={labelId}>{label}</span>
+      <div className="choice" role="group" aria-labelledby={labelId}>
+        {options.map((option) => (
+          <button key={option.value} type="button" aria-pressed={value === option.value} onClick={() => onChange(clearable && value === option.value ? '' : option.value)}>
+            {option.label}
+          </button>
+        ))}
+      </div>
+      {hint && <span className="hint">{hint}</span>}
+      <FieldError path={path} />
+    </div>
   )
 }
 
