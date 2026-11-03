@@ -1,0 +1,37 @@
+FROM composer:2 AS deps
+
+WORKDIR /app
+COPY backend/composer.json backend/composer.lock ./
+RUN composer install --no-dev --no-interaction --no-scripts --no-autoloader --prefer-dist
+
+FROM php:8.4-fpm-alpine
+
+# pdo_sqlite ships with the official image; only OPcache needs installing.
+RUN docker-php-ext-install opcache
+
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache-prod.ini
+COPY docker/php/fpm-pool.conf /usr/local/etc/php-fpm.d/zz-app.conf
+
+WORKDIR /var/www/html
+
+COPY --from=deps /app/vendor ./vendor
+COPY backend/ .
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+RUN rm -f bootstrap/cache/*.php .env \
+    && composer dump-autoload --no-dev --optimize --no-interaction --no-scripts \
+    && rm /usr/local/bin/composer
+
+RUN addgroup -g 1000 app \
+    && adduser -u 1000 -G app -s /bin/sh -D app \
+    && chown -R app:app /var/www/html/storage /var/www/html/bootstrap/cache
+
+COPY docker/php/entrypoint.prod.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER app
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["php-fpm"]
+
+EXPOSE 9000

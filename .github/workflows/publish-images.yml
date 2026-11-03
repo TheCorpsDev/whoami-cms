@@ -1,0 +1,173 @@
+name: Verify and publish production images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Weekly rebuild so PHP/Alpine/nginx security fixes reach production
+  # even when no commit lands on main.
+  schedule:
+    - cron: '41 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (SHA, tag, or branch) to republish for a controlled rollback
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-production-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_REPOSITORY: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}
+  IMAGE_PREFIX: ${{ vars.DOCKERHUB_IMAGE_PREFIX }}
+  IMAGE_LABEL: org.whoami-cms.application=true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+      - uses: actions/cache@v5
+        with:
+          path: backend/vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+      - run: composer validate --strict
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test
+
+  frontend:
+    name: Frontend checks and build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm run build
+
+  publish:
+    name: Build and publish Docker Hub images
+    needs: [backend, frontend]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build frontend assets included in the web image
+        working-directory: frontend
+        # Optional repository variables: without them the demo values are used.
+        env:
+          VITE_SITE_NAME: ${{ vars.VITE_SITE_NAME }}
+          VITE_SITE_TAGLINE: ${{ vars.VITE_SITE_TAGLINE }}
+          VITE_SITE_DESCRIPTION: ${{ vars.VITE_SITE_DESCRIPTION }}
+          VITE_SITE_SHORT_NAME: ${{ vars.VITE_SITE_SHORT_NAME }}
+          VITE_SITE_INITIALS: ${{ vars.VITE_SITE_INITIALS }}
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+      - name: Read immutable revision metadata
+        id: revision
+        shell: bash
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git log -1 --format=%s)" >> "$GITHUB_OUTPUT"
+          echo "author=$(git log -1 --format=%an)" >> "$GITHUB_OUTPUT"
+          echo "branch=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          echo "pipeline_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build API image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/php/Dockerfile.prod
+          pull: true
+          load: true
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_PREFIX }}-api-production
+            ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_PREFIX }}-api-${{ steps.revision.outputs.sha }}
+          labels: |
+            ${{ env.IMAGE_LABEL }}
+            org.opencontainers.image.revision=${{ steps.revision.outputs.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            io.github.deploy-notifier.repository=${{ github.repository }}
+            io.github.deploy-notifier.branch=${{ steps.revision.outputs.branch }}
+            io.github.deploy-notifier.build-number=${{ github.run_number }}
+            io.github.deploy-notifier.run-id=${{ github.run_id }}
+            io.github.deploy-notifier.pipeline-url=${{ steps.revision.outputs.pipeline_url }}
+            io.github.deploy-notifier.commit=${{ steps.revision.outputs.commit }}
+            io.github.deploy-notifier.author=${{ steps.revision.outputs.author }}
+          cache-from: type=gha,scope=whoami-cms-api
+          cache-to: type=gha,mode=max,scope=whoami-cms-api
+      - name: Build web image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/nginx/Dockerfile.prod
+          pull: true
+          load: true
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_PREFIX }}-web-production
+            ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_PREFIX }}-web-${{ steps.revision.outputs.sha }}
+          labels: |
+            ${{ env.IMAGE_LABEL }}
+            org.opencontainers.image.revision=${{ steps.revision.outputs.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            io.github.deploy-notifier.repository=${{ github.repository }}
+            io.github.deploy-notifier.branch=${{ steps.revision.outputs.branch }}
+            io.github.deploy-notifier.build-number=${{ github.run_number }}
+            io.github.deploy-notifier.run-id=${{ github.run_id }}
+            io.github.deploy-notifier.pipeline-url=${{ steps.revision.outputs.pipeline_url }}
+            io.github.deploy-notifier.commit=${{ steps.revision.outputs.commit }}
+            io.github.deploy-notifier.author=${{ steps.revision.outputs.author }}
+          cache-from: type=gha,scope=whoami-cms-web
+          cache-to: type=gha,mode=max,scope=whoami-cms-web
+      - name: Push image tags only after both builds succeed
+        run: docker image push --all-tags "$IMAGE_REPOSITORY"
+
+      - name: Retain recent Docker Hub rollback images
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
+          DOCKERHUB_IMAGE_PREFIX: ${{ vars.DOCKERHUB_IMAGE_PREFIX }}
+          DOCKERHUB_IMAGE_RETENTION_COUNT: ${{ vars.DOCKERHUB_IMAGE_RETENTION_COUNT || '3' }}
+          DOCKERHUB_CLEANUP_TOKEN: ${{ secrets.DOCKERHUB_CLEANUP_TOKEN }}
+        run: bash scripts/prune-dockerhub-tags.sh

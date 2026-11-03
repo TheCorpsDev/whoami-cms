@@ -1,0 +1,5 @@
+.env
+deploy/vps/.env
+frontend/node_modules
+frontend/dist
+foto-profilo-dal-cv.png

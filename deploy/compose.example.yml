@@ -1,0 +1,61 @@
+# Example production Compose file for a server with Docker.
+#
+#   mkdir -p /opt/whoami-cms && cd /opt/whoami-cms
+#   cp compose.example.yml compose.yml
+#   cp .env.example .env            # then fill in the values
+#   docker volume create whoami_storage
+#   docker compose up -d --wait
+#
+# The images are built and pushed by .github/workflows/publish-images.yml.
+# The `web` container only listens on port 80 inside Docker: put a reverse
+# proxy with TLS (Nginx Proxy Manager, Caddy, Traefik...) in front of it, on
+# the network named by PROXY_NETWORK.
+name: whoami-cms
+
+services:
+  app:
+    image: ${DOCKERHUB_USERNAME:?}/${DOCKERHUB_REPOSITORY:?}:${DOCKERHUB_IMAGE_PREFIX:?}-api-production
+    container_name: whoami_app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - storage:/var/www/html/storage
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit(@fsockopen(\"127.0.0.1\", 9000) ? 0 : 1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+
+  web:
+    image: ${DOCKERHUB_USERNAME:?}/${DOCKERHUB_REPOSITORY:?}:${DOCKERHUB_IMAGE_PREFIX:?}-web-production
+    container_name: whoami_web
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      # Photo and CV uploaded from the admin, served straight by Nginx.
+      - storage:/var/www/html/storage:ro
+    networks: [internal, proxy]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 3 -O /dev/null http://127.0.0.1/nginx-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-proxy}
+
+volumes:
+  # SQLite database, sessions, logs and uploads. External on purpose: a typo
+  # in the name stops the deploy instead of starting with an empty database.
+  storage:
+    external: true
+    name: ${STORAGE_VOLUME_NAME:-whoami_storage}
