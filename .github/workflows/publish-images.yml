@@ -75,7 +75,9 @@ jobs:
   publish:
     name: Build and publish Docker Hub images
     needs: [backend, frontend]
-    if: github.event_name != 'pull_request'
+    # Publishing needs Docker Hub credentials: without the DOCKERHUB_REPOSITORY variable
+    # (a fork, a fresh clone) only the tests and checks run, and the workflow stays green.
+    if: github.event_name != 'pull_request' && vars.DOCKERHUB_REPOSITORY != ''
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5

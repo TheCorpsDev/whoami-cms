@@ -133,7 +133,7 @@ Il service worker (`frontend/public/sw.js`) è attivo solo nelle build di produz
 - `<DOCKERHUB_USERNAME>/<DOCKERHUB_REPOSITORY>:<DOCKERHUB_IMAGE_PREFIX>-api-production`
 - `<DOCKERHUB_USERNAME>/<DOCKERHUB_REPOSITORY>:<DOCKERHUB_IMAGE_PREFIX>-web-production`
 
-Pubblica anche un tag con lo sha del commit, si ricostruisce ogni settimana per raccogliere le correzioni delle immagini di base e si può avviare a mano indicando un riferimento git, per un ripristino controllato.
+Il lavoro di pubblicazione parte solo se la variabile `DOCKERHUB_REPOSITORY` è impostata: senza (un fork o un clone nuovo) girano solo test e controlli. Pubblica anche un tag con lo sha del commit, si ricostruisce ogni settimana per raccogliere le correzioni delle immagini di base e si può avviare a mano indicando un riferimento git, per un ripristino controllato.
 
 Nelle impostazioni del repository (*Settings → Secrets and variables → Actions*) imposta:
 
